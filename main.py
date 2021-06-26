@@ -37,18 +37,93 @@ classes = kmeans.predict(training1).reshape((-1, 1))
 log(training1.shape)
 log(classes.shape)
 
-p_data = training1
+curr_center = np.concatenate(
+    (kmeans.cluster_centers_.squeeze(), np.arange(0, 10).reshape(
+        10, 1), np.ones((10, 1))),
+    axis=1)
 
-#check driver belongs to which  cluster
-driver = np.concatenate([driver, driver], axis=1)
-d_cluster = kmeans.predict(driver)
-log(d_cluster)
+curr_passengers = np.concatenate(
+    (training1[:, 0:2], np.ones((training1.shape[0], 1))), axis=1)
+
+
+#* get passengers with same class
+def getSameClass(_class, classes, data):
+    data = data[data[:, -1] == 1]
+    mask = classes == _class
+    print(mask.squeeze().shape)
+    print(data.shape)
+    return data[mask.squeeze(), :]
+
+
+#* get nearest center and remove it from the list
+def getNearestCentreClass(centers, driver):
+    mask = centers[:, -1] == 1
+    tmp = centers[mask]
+
+    dis = np.linalg.norm(tmp[:, 0:2].copy() - driver)
+    mini = np.argmin(dis)
+    _class = tmp[mini, 4]
+    tmp[mini, 5] = 0
+    centers[mask] = tmp
+    return _class, centers
+
+
+#* get nearest passenger in the same class
+def getNearestPassenger(driver, passengers):
+    mask = passengers[:, -1] == 1
+    tmp = passengers[mask]
+    # print(passengers.shape)
+    # print(tmp.shape)
+
+    dis = np.linalg.norm(tmp[:,0:2].copy() - driver)
+    mini = np.argmin(dis)
+    tmp[mini, 2] = 0
+    passengers[mask] = tmp
+    return passengers[mini, 0:2], passengers, tmp.shape[0] - 1
+
 
 log("\n")
-cls = kmeans.cluster_centers_
-log(cls)
+log("centers")
+assert (len(curr_center) == 10)
+log(curr_center)
+log(curr_center.shape)
+
+#check driver belongs to which  cluster
+driver = np.array([0, 0])
+assert (driver.shape == curr_passengers[0, 0:2].shape)
+
+queue = []
+d_class, curr_center = getNearestCentreClass(curr_center, driver)
+tmp_passengers = getSameClass(d_class, classes, curr_passengers)
+traversed = 1
+k = 1
+
+f = 0
+#------------------------------------------------------#
+#*taxi starting!
+while (traversed <= 10):
+    f += 1
+    if f == 1000:
+        print("Stack limit")
+        break
+
+    while (k != 0):
+        tmp_driver, tmp_passengers, k = getNearestPassenger(
+            driver, tmp_passengers)
+        queue.append((driver, tmp_driver))
+        driver = tmp_driver
+
+    d_class, curr_center = getNearestCentreClass(curr_center, driver)
+    tmp_passengers = getSameClass(d_class, classes, tmp_passengers)
+    k = 1
+    traversed += 1
+
+log("\n\n")
+log(queue)
+#-------------------------------------------------------#
 
 if __name__ == '__main__':
-    app = Server()
-    app(fig)
-    app.run()
+    # app = Server()
+    # app(fig)
+    # app.run()
+    pass
