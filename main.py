@@ -141,8 +141,8 @@ np.save("data/queue", queue)
 
 q = np.load("data/queue.npy")
 q = q.reshape((-1, 4))
-x = []
-y = []
+x = [0]
+y = [0]
 for i in range(20):
     x.append(q[i, 0])
     y.append(q[i, 1])
