@@ -46,19 +46,35 @@ curr_passengers = np.concatenate(
     (training1[:, 0:2], np.ones((training1.shape[0], 1))), axis=1)
 
 
-#* get passengers with same class
 def getSameClass(_class, classes, data):
-    data = data[data[:, -1] == 1]
+    """
+    *get passengers with same class
+    @param _class  -> int
+    @param classes -> vector :: (num_samples, 1)
+    @param data    -> vector :: (num_samples, 3)
+    """
+    _class = int(_class)
+    assert(isinstance(_class, int))
+    assert(classes.shape[1] == 1)
+    assert(data.shape[1] == 3)
+
     mask = classes == _class
-    print(mask.squeeze().shape)
-    print(data.shape)
-    return data[mask.squeeze(), :]
+    return data[mask.squeeze()]
 
 
-#* get nearest center and remove it from the list
 def getNearestCentreClass(centers, driver):
+    """
+    *get nearest center and remove it from the list
+    @param centers -> vector :: (10, 6)
+    @param driver  -> vector :: (1, 2)
+    """
+    driver = driver.reshape((1,2))
+    assert(centers.shape[1] == 6)
+    assert(driver.shape == (1, 2))
+
     mask = centers[:, -1] == 1
     tmp = centers[mask]
+    assert(tmp.shape[1] == centers.shape[1])
 
     dis = np.linalg.norm(tmp[:, 0:2].copy() - driver)
     mini = np.argmin(dis)
@@ -68,18 +84,24 @@ def getNearestCentreClass(centers, driver):
     return _class, centers
 
 
-#* get nearest passenger in the same class
 def getNearestPassenger(driver, passengers):
+    """
+    *get nearest passenger in the same class
+    @param driver      -> vector :: (1, 2)
+    @param passengers  -> vector :: (nums_samples, 3)
+    """
+    driver = driver.reshape((1,2))
+    assert(driver.shape==(1, 2))
+    assert(passengers.shape[1]==3)
+
     mask = passengers[:, -1] == 1
     tmp = passengers[mask]
-    # print(passengers.shape)
-    # print(tmp.shape)
 
     dis = np.linalg.norm(tmp[:,0:2].copy() - driver)
     mini = np.argmin(dis)
     tmp[mini, 2] = 0
     passengers[mask] = tmp
-    return passengers[mini, 0:2], passengers, tmp.shape[0] - 1
+    return tmp[mini, 0:2], passengers, tmp.shape[0] - 1
 
 
 log("\n")
@@ -93,33 +115,36 @@ driver = np.array([0, 0])
 assert (driver.shape == curr_passengers[0, 0:2].shape)
 
 queue = []
-d_class, curr_center = getNearestCentreClass(curr_center, driver)
-tmp_passengers = getSameClass(d_class, classes, curr_passengers)
-traversed = 1
-k = 1
+queue.append(driver)
 
+tmp_passengers = curr_passengers
+k = 1
+traversed = 0
 f = 0
 #------------------------------------------------------#
-#*taxi starting!
-while (traversed <= 10):
+#!taxi starting!
+while (traversed < 10):
     f += 1
     if f == 1000:
         print("Stack limit")
         break
 
+    d_class, curr_center = getNearestCentreClass(curr_center, driver)
+    tmp_passengers = getSameClass(d_class, classes, curr_passengers)
+
     while (k != 0):
         tmp_driver, tmp_passengers, k = getNearestPassenger(
             driver, tmp_passengers)
-        queue.append((driver, tmp_driver))
+        queue.append(tmp_driver)
         driver = tmp_driver
 
-    d_class, curr_center = getNearestCentreClass(curr_center, driver)
-    tmp_passengers = getSameClass(d_class, classes, tmp_passengers)
+   
     k = 1
     traversed += 1
 
-log("\n\n")
+log("\n")
 log(queue)
+log(len(queue))
 #-------------------------------------------------------#
 
 if __name__ == '__main__':
