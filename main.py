@@ -28,8 +28,7 @@ color = np.concatenate([np.zeros(n), np.ones(n)], axis=0)
 text = kmeans.labels_
 fig = px.scatter(x=p_d[:, 0],
                  y=p_d[:, 1],
-                 color=color,
-                 hover_name=text,
+                 color=text,
                  title="Taxi Routing Based on Passenger Destination")
 
 classes = kmeans.predict(training1).reshape((-1, 1))
@@ -175,12 +174,6 @@ fig2 = go.Figure(
                  buttons=[dict(label="Play", method="animate", args=[None])])
         ]),
     frames=frames)
-
-
-fig.update_traces(marker=dict(size=6,
-                              line=dict(width=1,
-                                        color='black')),
-                  selector=dict(mode='markers'))
 
 fig.update_traces(marker_coloraxis=None)
 fig2.add_trace(fig.data[0])
