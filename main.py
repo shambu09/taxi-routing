@@ -176,6 +176,12 @@ fig2 = go.Figure(
         ]),
     frames=frames)
 
+
+fig.update_traces(marker=dict(size=6,
+                              line=dict(width=1,
+                                        color='black')),
+                  selector=dict(mode='markers'))
+
 fig.update_traces(marker_coloraxis=None)
 fig2.add_trace(fig.data[0])
 fig3 = go.Figure(
